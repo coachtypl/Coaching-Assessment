@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coaching Player Type Assessment · Chute</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  /* ============================================================
+     Chute Coaching Assessment
+     Built on Chute design system: charcoal + yellow + hard offset
+     ============================================================ */
+
+  :root {
+    /* Player-type colors — yellow is brand primary; the other three
+       sit in the same warm/saturated zone so the four read as a family. */
+    --t-a:        hsl(47, 100%, 50%);   /* Achiever — Chute yellow */
+    --t-a-wash:   hsl(47, 100%, 92%);
+    --t-a-ink:    hsl(0, 0%, 22%);
+
+    --t-s:        hsl(155, 55%, 38%);   /* Socializer — deep warm green */
+    --t-s-wash:   hsl(150, 45%, 92%);
+    --t-s-ink:    hsl(155, 55%, 22%);
+
+    --t-e:        hsl(28, 80%, 48%);    /* Explorer — burnt amber */
+    --t-e-wash:   hsl(34, 80%, 92%);
+    --t-e-ink:    hsl(28, 60%, 24%);
+
+    --t-k:        hsl(8, 75%, 50%);     /* Challenger — warm red */
+    --t-k-wash:   hsl(8, 70%, 94%);
+    --t-k-ink:    hsl(8, 55%, 28%);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg-1);
+    font: var(--t-body);
+    min-height: 100vh;
+    /* faint dotted texture to give the paper background some grain */
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  .shell { max-width: 720px; margin: 0 auto; padding: 56px 24px 96px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── eyebrow ── */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: var(--t-overline);
+    color: var(--fg-2);
+    margin-bottom: 22px;
+  }
+  .eyebrow::before {
+    content: ''; display: block; width: 28px; height: 2px; background: var(--chute-char);
+  }
+
+  /* ── display headings ── */
+  h1.display {
+    font-family: var(--font-body);
+    font-weight: 900;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: var(--chute-char);
+    margin: 0 0 18px;
+  }
+  h1.display .accent {
+    display: inline-block;
+    background: var(--chute-yellow);
+    padding: 0 12px 4px;
+    border-radius: 8px;
+    transform: rotate(-1deg);
+  }
+  .sub {
+    font: 400 17px/1.6 var(--font-body);
+    color: var(--fg-2);
+    max-width: 540px;
+    margin: 0 0 36px;
+  }
+
+  /* ── chunky buttons ── */
+  .btn-primary {
+    display: block; width: 100%;
+    padding: 18px 24px;
+    background: var(--chute-yellow);
+    color: var(--chute-char);
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+    font: 700 17px/1 var(--font-body);
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    box-shadow: var(--shadow-hard);
+    transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+  }
+  .btn-primary:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--chute-char); }
+  .btn-primary:active { transform: translate(2px,2px); box-shadow: 0 0 0 var(--chute-char); }
+
+  .btn-outline {
+    padding: 12px 22px;
+    background: #fff;
+    color: var(--chute-char);
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+    font: 600 14px/1 var(--font-body);
+    cursor: pointer;
+    transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+    box-shadow: var(--shadow-hard);
+    white-space: nowrap;
+  }
+  .btn-outline:hover:not(:disabled) { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--chute-char); }
+  .btn-outline:active:not(:disabled) { transform: translate(2px,2px); box-shadow: 0 0 0 var(--chute-char); }
+  .btn-outline:disabled { opacity: .4; cursor: not-allowed; box-shadow: 2px 2px 0 var(--gray-300); border-color: var(--gray-300); }
+  .btn-outline.hidden { visibility: hidden; }
+  .btn-outline.primary-nav {
+    background: var(--chute-char);
+    color: var(--gray-0);
+  }
+  .btn-outline.primary-nav:disabled { background: var(--gray-200); color: var(--gray-400); border-color: var(--gray-300); }
+
+  /* ── INTRO type grid ── */
+  .type-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 32px;
+  }
+  .tcard {
+    padding: 16px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-hard);
+    transition: transform 140ms var(--ease-pop);
+    position: relative;
+    overflow: hidden;
+  }
+  .tcard:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--chute-char); }
+  .tcard::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px;
+  }
+  .tcard.ta::after { background: var(--t-a); }
+  .tcard.ts::after { background: var(--t-s); }
+  .tcard.te::after { background: var(--t-e); }
+  .tcard.tk::after { background: var(--t-k); }
+  .tsym {
+    font-size: 22px; line-height: 1;
+    display: inline-block; padding-top: 6px;
+    margin-bottom: 6px;
+    font-weight: 800;
+  }
+  .ta .tsym { color: var(--t-a-ink); }
+  .ts .tsym { color: var(--t-s); }
+  .te .tsym { color: var(--t-e); }
+  .tk .tsym { color: var(--t-k); }
+  .tname { font: 700 14px/1.1 var(--font-body); color: var(--chute-char); margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tdesc { font: 400 13px/1.5 var(--font-body); color: var(--fg-2); }
+
+  .note {
+    font: 400 13px/1.6 var(--font-body); color: var(--fg-2);
+    text-align: center; margin-top: 14px;
+  }
+  .handwritten {
+    display: block; text-align: center;
+    font: 500 22px/1 var(--font-script);
+    color: var(--chute-char);
+    margin: 18px 0 8px;
+    transform: rotate(-1.5deg);
+  }
+
+  /* ── NAME CAPTURE ── */
+  .name-screen { max-width: 460px; }
+  .name-screen h2 {
+    font: 900 36px/1.05 var(--font-body);
+    letter-spacing: -0.025em;
+    color: var(--chute-char);
+    margin: 0 0 10px;
+  }
+  .name-screen p {
+    font: 400 16px/1.6 var(--font-body);
+    color: var(--fg-2);
+    margin: 0 0 28px;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 26px; }
+  .field-group label {
+    font: var(--t-overline);
+    color: var(--fg-2);
+  }
+  .field-group input {
+    padding: 14px 16px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+    font: 500 17px/1 var(--font-body);
+    color: var(--chute-char);
+    outline: none;
+    transition: box-shadow 140ms var(--ease-pop);
+  }
+  .field-group input:focus { box-shadow: 0 0 0 3px var(--chute-yellow); }
+
+  /* ── TEST PROGRESS ── */
+  .prog-wrap { margin-bottom: 32px; }
+  .prog-meta {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font: 600 12px/1 var(--font-body);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--fg-2);
+    margin-bottom: 10px;
+  }
+  .prog-meta .pct { color: var(--chute-char); font-weight: 700; }
+  .prog-track {
+    height: 10px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    background: var(--chute-yellow);
+    border-right: 2px solid var(--chute-char);
+    transition: width 420ms var(--ease-pop);
+  }
+  .prog-fill[style*="width: 0%"], .prog-fill[style*="width: 100%"] { border-right: none; }
+
+  /* ── QUESTION ── */
+  .qnum {
+    display: inline-block;
+    font: 700 12px/1 var(--font-body);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    background: var(--chute-char);
+    color: var(--chute-yellow);
+    padding: 6px 10px;
+    border-radius: var(--r-xs);
+    margin-bottom: 14px;
+  }
+  .qtext {
+    font: 800 28px/1.2 var(--font-body);
+    letter-spacing: -0.02em;
+    color: var(--chute-char);
+    margin: 0 0 10px;
+    text-wrap: pretty;
+  }
+  .qctx {
+    font: 400 italic 15px/1.55 var(--font-body);
+    color: var(--fg-2);
+    margin: 0 0 22px;
+    padding-left: 14px;
+    border-left: 3px solid var(--chute-yellow);
+  }
+
+  /* ── OPTIONS ── */
+  .opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 26px; }
+  .opt {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 16px 18px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    text-align: left;
+    font: 500 15px/1.5 var(--font-body);
+    color: var(--chute-char);
+    transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop), background 120ms;
+    box-shadow: 2px 2px 0 var(--chute-char);
+  }
+  .opt:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--chute-char); background: var(--gray-50); }
+  .opt.sel {
+    background: var(--chute-yellow);
+    box-shadow: 4px 4px 0 var(--chute-char);
+    transform: translate(-2px,-2px);
+  }
+  .opt .olbl {
+    display: inline-grid; place-items: center;
+    width: 26px; height: 26px;
+    background: var(--chute-char); color: var(--chute-yellow);
+    border-radius: 6px;
+    font: 700 12px/1 var(--font-body);
+    flex-shrink: 0;
+    margin-top: -1px;
+  }
+  .opt.sel .olbl { background: var(--chute-char); color: var(--chute-yellow); }
+
+  /* ── NAV ── */
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .dots { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; flex: 1; }
+  .dot {
+    width: 8px; height: 8px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 2px;
+    background: transparent;
+    transition: all 140ms;
+    flex-shrink: 0;
+  }
+  .dot.ans { background: var(--chute-yellow); border-color: var(--chute-char); }
+  .dot.cur { background: var(--chute-char); border-color: var(--chute-char); width: 18px; }
+
+  /* ── RESULTS: hero ── */
+  .result-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .result-actions .btn-outline.accent {
+    background: var(--chute-char); color: var(--chute-yellow);
+  }
+
+  .auto-send-notice {
+    display: none;
+    background: var(--t-s-wash);
+    border: 2px solid var(--t-s);
+    border-radius: var(--r-md);
+    padding: 12px 16px;
+    margin-bottom: 22px;
+    font: 500 13px/1.5 var(--font-body);
+    color: var(--t-s-ink);
+    box-shadow: var(--shadow-hard);
+  }
+  .auto-send-notice strong { font-weight: 700; }
+
+  .xp-intro {
+    background: var(--chute-char);
+    color: var(--gray-0);
+    border-radius: var(--r-lg);
+    padding: 22px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-hard);
+    border: 2px solid var(--chute-char);
+  }
+  .xp-intro-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .xp-intro-lbl {
+    font: 700 11px/1 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+  }
+  .xp-val {
+    font: 900 22px/1 var(--font-body);
+    letter-spacing: -0.02em;
+    color: var(--chute-yellow);
+  }
+  .xp-bar-track {
+    height: 14px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .xp-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--chute-yellow);
+    border-radius: 999px;
+    transition: width 1.2s cubic-bezier(.34,1.56,.64,1);
+  }
+  .xp-caption {
+    font: 400 13px/1.55 var(--font-body);
+    color: rgba(255,255,255,0.75);
+  }
+
+  .result-hero {
+    padding: 24px;
+    border-radius: var(--r-lg);
+    margin-bottom: 24px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    box-shadow: var(--shadow-hard-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .result-hero::before {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 0;
+    height: 10px;
+  }
+  .rh-a::before { background: var(--t-a); }
+  .rh-s::before { background: var(--t-s); }
+  .rh-e::before { background: var(--t-e); }
+  .rh-k::before { background: var(--t-k); }
+
+  .rh-top { display: flex; align-items: flex-start; gap: 16px; margin: 10px 0 8px; }
+  .rh-icon {
+    width: 60px; height: 60px;
+    border-radius: var(--r-md);
+    display: grid; place-items: center;
+    font-size: 28px; font-weight: 800;
+    border: 2px solid var(--chute-char);
+    box-shadow: 3px 3px 0 var(--chute-char);
+    flex-shrink: 0;
+  }
+  .ic-a { background: var(--t-a); color: var(--t-a-ink); }
+  .ic-s { background: var(--t-s); color: #fff; }
+  .ic-e { background: var(--t-e); color: #fff; }
+  .ic-k { background: var(--t-k); color: #fff; }
+
+  .rh-lbl {
+    font: 700 11px/1 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .la { color: var(--t-a-ink); }
+  .ls { color: var(--t-s); }
+  .le { color: var(--t-e); }
+  .lk { color: var(--t-k); }
+
+  .rh-name {
+    font: 900 32px/1 var(--font-body);
+    letter-spacing: -0.025em;
+    color: var(--chute-char);
+    margin-bottom: 10px;
+  }
+  .rh-tag {
+    font: 400 15px/1.6 var(--font-body);
+    color: var(--fg-1);
+  }
+
+  .sec-eyebrow {
+    font: 700 11px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--fg-2);
+    margin: 26px 0 12px;
+  }
+
+  /* ── SCORE BARS ── */
+  .score-bars { display: grid; gap: 10px; }
+  .srow {
+    display: grid; grid-template-columns: 130px 1fr 44px;
+    gap: 12px; align-items: center;
+  }
+  .slbl {
+    display: flex; align-items: center; gap: 8px;
+    font: 600 13px/1 var(--font-body);
+    color: var(--chute-char);
+  }
+  .slbl .sym { font-weight: 800; }
+  .strack {
+    height: 12px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .sbar {
+    height: 100%;
+    border-radius: 999px;
+    width: 0%;
+    transition: width 800ms var(--ease-pop);
+  }
+  .sb-a { background: var(--t-a); }
+  .sb-s { background: var(--t-s); }
+  .sb-e { background: var(--t-e); }
+  .sb-k { background: var(--t-k); }
+  .spct {
+    font: 700 14px/1 var(--font-mono);
+    color: var(--chute-char);
+    text-align: right;
+  }
+
+  /* ── BLUEPRINT ── */
+  .blueprint {
+    margin-top: 28px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-hard);
+  }
+  .blueprint h3 {
+    font: 800 24px/1.15 var(--font-body);
+    letter-spacing: -0.02em;
+    color: var(--chute-char);
+    margin: 0 0 6px;
+  }
+  .blueprint > p {
+    font: 400 14px/1.6 var(--font-body);
+    color: var(--fg-2);
+    margin: 0 0 18px;
+  }
+  .bp-item {
+    display: grid; grid-template-columns: 110px 1fr;
+    gap: 14px; align-items: flex-start;
+    padding: 14px 0;
+    border-top: 1px dashed var(--border);
+  }
+  .bp-item:first-of-type { border-top: none; padding-top: 4px; }
+  .bp-phase {
+    font: 700 11px/1 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    text-align: center;
+    border: 2px solid var(--chute-char);
+    background: #fff;
+    color: var(--chute-char);
+    box-shadow: 2px 2px 0 var(--chute-char);
+    white-space: nowrap;
+  }
+  .bp-phase.ph-disc { background: var(--gray-100); }
+  .bp-phase.ph-onb  { background: var(--chute-yellow); }
+  .bp-phase.ph-mom  { background: var(--t-s-wash); }
+  .bp-phase.ph-deep { background: var(--t-e-wash); }
+  .bp-phase.ph-mast { background: var(--gray-100); }
+  .bp-phase.ph-leg  { background: var(--t-k-wash); }
+  .bp-text {
+    font: 400 14px/1.55 var(--font-body);
+    color: var(--fg-1);
+    padding-top: 4px;
+  }
+  .bp-text strong { font-weight: 700; color: var(--chute-char); }
+
+  /* ── FIRST SESSION ── */
+  .first-session {
+    margin-top: 24px;
+    background: var(--chute-yellow);
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-hard-lg);
+  }
+  .fs-header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .fs-badge {
+    width: 44px; height: 44px;
+    background: var(--chute-char);
+    color: var(--chute-yellow);
+    border-radius: var(--r-md);
+    display: grid; place-items: center;
+    font-size: 22px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .fsh {
+    font: 800 22px/1.2 var(--font-body);
+    letter-spacing: -0.02em;
+    color: var(--chute-char);
+  }
+  .fsp {
+    font: 400 14px/1.6 var(--font-body);
+    color: var(--chute-char);
+    margin: 12px 0 18px;
+  }
+  .fs-items { display: flex; flex-direction: column; gap: 12px; }
+  .fsi {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px;
+    background: var(--gray-0);
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+  }
+  .fsi-num {
+    width: 28px; height: 28px;
+    background: var(--chute-char);
+    color: var(--chute-yellow);
+    border-radius: var(--r-pill);
+    display: grid; place-items: center;
+    font: 800 13px/1 var(--font-body);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .fsi-body {
+    font: 400 14px/1.55 var(--font-body);
+    color: var(--chute-char);
+  }
+  .fsi-body strong { font-weight: 700; }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 24px;
+  }
+  .modal-bg.hidden { display: none; }
+  .modal {
+    background: var(--gray-0);
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    max-width: 480px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 6px 6px 0 var(--chute-char);
+  }
+  .modal h2 {
+    font: 900 26px/1.1 var(--font-body);
+    letter-spacing: -0.02em;
+    color: var(--chute-char);
+    margin: 0 0 8px;
+  }
+  .modal p {
+    font: 400 14px/1.6 var(--font-body);
+    color: var(--fg-2);
+    margin: 0 0 20px;
+  }
+  .modal label {
+    font: var(--t-overline);
+    color: var(--fg-2);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .modal input {
+    width: 100%;
+    padding: 13px 15px;
+    background: #fff;
+    border: 2px solid var(--chute-char);
+    border-radius: var(--r-md);
+    font: 500 15px/1 var(--font-body);
+    color: var(--chute-char);
+    outline: none;
+    margin-bottom: 16px;
+  }
+  .modal input:focus { box-shadow: 0 0 0 3px var(--chute-yellow); }
+  .modal-actions {
+    display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
+  }
+  .modal-actions button {
+    padding: 12px 20px;
+    border-radius: var(--r-md);
+    font: 600 14px/1 var(--font-body);
+    cursor: pointer;
+    border: 2px solid var(--chute-char);
+    background: #fff;
+    color: var(--chute-char);
+    box-shadow: 2px 2px 0 var(--chute-char);
+    transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+  }
+  .modal-actions button:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--chute-char); }
+  .modal-actions button.send {
+    background: var(--chute-yellow);
+  }
+  .sent-confirm { text-align: center; padding: 16px 0; }
+  .sent-confirm .checkmark {
+    width: 64px; height: 64px;
+    background: var(--chute-yellow);
+    border: 2px solid var(--chute-char);
+    border-radius: 999px;
+    display: grid; place-items: center;
+    margin: 0 auto 14px;
+    font: 800 28px/1 var(--font-body);
+    color: var(--chute-char);
+    box-shadow: var(--shadow-hard);
+  }
+  .sent-confirm h3 {
+    font: 800 22px/1.1 var(--font-body);
+    color: var(--chute-char);
+    margin: 0 0 8px;
+  }
+  .sent-confirm p {
+    font: 400 14px/1.6 var(--font-body);
+    color: var(--fg-2);
+    margin: 0 0 18px;
+  }
+
+  /* footer brand badge */
+  .footer-mark {
+    margin-top: 56px;
+    display: flex; align-items: center; gap: 12px;
+    font: 500 12px/1 var(--font-body);
+    color: var(--fg-3);
+    justify-content: center;
+  }
+  .footer-mark img { height: 28px; border-radius: 6px; }
+
+  @media (max-width: 520px) {
+    .shell { padding: 36px 18px 80px; }
+    .type-grid { grid-template-columns: 1fr; }
+    .bp-item { grid-template-columns: 1fr; gap: 6px; }
+    .srow { grid-template-columns: 100px 1fr 38px; gap: 8px; }
+    .qtext { font-size: 24px; }
+    .rh-top { gap: 12px; }
+    .rh-name { font-size: 26px; }
+    .modal { padding: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ───────── INTRO ───────── -->
+<div id="screen-intro" class="screen active">
+  <div class="eyebrow">CHUTE · COACHING ASSESSMENT</div>
+  <h1 class="display">Find your <span class="accent">coaching</span><br>player type.</h1>
+  <p class="sub">15 questions · ~3 minutes. Based on Bartle's Player Types adapted for life coaching. Pick what feels most <em>true</em> — not most aspirational.</p>
+  <div class="type-grid">
+    <div class="tcard ta"><span class="tsym">▲</span><div class="tname">Achiever</div><div class="tdesc">Driven by measurable wins, progress tracking, and status milestones.</div></div>
+    <div class="tcard ts"><span class="tsym">◎</span><div class="tname">Socializer</div><div class="tdesc">Motivated by connection, belonging, and being witnessed by others.</div></div>
+    <div class="tcard te"><span class="tsym">◈</span><div class="tname">Explorer</div><div class="tdesc">Energized by self-discovery, insight, and mapping inner territory.</div></div>
+    <div class="tcard tk"><span class="tsym">◆</span><div class="tname">Challenger</div><div class="tdesc">Fueled by real stakes, overcoming resistance, and proving limits wrong.</div></div>
+  </div>
+  <button class="btn-primary" onclick="show('screen-name')">Take the leap →</button>
+  <span class="handwritten">no right answers</span>
+  <p class="note">Your results shape how your entire coaching journey is designed.</p>
+</div>
+
+<!-- ───────── NAME CAPTURE ───────── -->
+<div id="screen-name" class="screen">
+  <div class="name-screen">
+    <div class="eyebrow">BEFORE WE BEGIN</div>
+    <h2>Tell us your name.</h2>
+    <p>Your name personalizes your results. Your coach receives a copy of your full assessment the moment you finish.</p>
+    <div class="field-group">
+      <label>YOUR FIRST NAME</label>
+      <input type="text" id="client-name" placeholder="e.g. Jordan" autocomplete="given-name" />
+    </div>
+    <button class="btn-primary" onclick="beginTest()">Start the assessment</button>
+  </div>
+</div>
+
+<!-- ───────── TEST ───────── -->
+<div id="screen-test" class="screen">
+  <div class="prog-wrap">
+    <div class="prog-meta"><span id="prog-label">Question 1 of 15</span><span class="pct" id="prog-pct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="qnum" id="q-num">QUESTION 01</div>
+  <div class="qtext" id="q-text"></div>
+  <div class="qctx" id="q-ctx"></div>
+  <div class="opts" id="opts"></div>
+  <div class="nav">
+    <button class="btn-outline hidden" id="back-btn" onclick="goBack()">← Back</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn-outline primary-nav" id="next-btn" onclick="goNext()" disabled>Next →</button>
+  </div>
+</div>
+
+<!-- ───────── RESULTS ───────── -->
+<div id="screen-result" class="screen">
+  <div class="eyebrow" id="res-greeting">YOUR RESULTS</div>
+
+  <div class="result-actions">
+    <button class="btn-outline accent" onclick="openEmailModal()">✉ Email my coach</button>
+    <button class="btn-outline" onclick="saveResults()">⤓ Save results</button>
+    <button class="btn-outline" onclick="retakeTest()">↻ Retake</button>
+  </div>
+
+  <div class="auto-send-notice" id="auto-send-notice">
+    ✓ <strong>Results auto-sent to your coach</strong> at <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c9aaa6a8aaa1bdb089aaa1bcbdaca5a0afacaaa6a8aaa1a0a7aee7aaa6a4">[email&#160;protected]</a>
+  </div>
+
+  <!-- XP welcome -->
+  <div class="xp-intro">
+    <div class="xp-intro-top">
+      <span class="xp-intro-lbl">WELCOME XP · FIRST POINTS ON THE BOARD</span>
+      <span class="xp-val" id="xp-val">0 XP</span>
+    </div>
+    <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-fill"></div></div>
+    <p class="xp-caption" id="xp-caption">Completing this assessment earns your first XP. Every session, commitment honored, and breakthrough discovered adds to your score over 18 months.</p>
+  </div>
+
+  <!-- Type hero -->
+  <div id="result-hero" class="result-hero"></div>
+
+  <!-- Score bars -->
+  <div class="sec-eyebrow">YOUR TYPE SCORES</div>
+  <div class="score-bars" id="score-bars"></div>
+
+  <!-- Blueprint -->
+  <div class="blueprint" id="blueprint"></div>
+
+  <!-- First session -->
+  <div class="first-session" id="first-session"></div>
+
+  <div class="footer-mark">
+    <img src="assets/logo-square.png" alt="Chute">
+    <span>CHUTE LIFE COACHING · TAKE THE LEAP</span>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<!-- EMAIL MODAL -->
+<div class="modal-bg hidden" id="modal-bg">
+  <div class="modal" id="modal-inner"></div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ============================================================
+   DATA — questions + type profiles (preserved verbatim from source)
+   ============================================================ */
+
+const QUESTIONS = [
+  { t:"When you complete something difficult, what matters most to you?",
+    x:"Think about a recent personal win — a hard conversation, a reached goal, a fear overcome.",
+    o:[
+      {l:"A",v:"Knowing my score improved and I can track the measurable progress",tp:"a"},
+      {l:"B",v:"Sharing it with someone who will genuinely celebrate with me",tp:"s"},
+      {l:"C",v:"Understanding why it worked — what I discovered about myself in the process",tp:"e"},
+      {l:"D",v:"That it was actually hard and I pushed through it anyway",tp:"k"} ] },
+  { t:"Two months in, your momentum is slowing. What re-engages you fastest?",
+    x:"Be honest — what actually pulls you back, not what sounds most virtuous.",
+    o:[
+      {l:"A",v:"Seeing a concrete metric move — income, confidence score, or habits tracked",tp:"a"},
+      {l:"B",v:"A conversation with my coach or peer who reminds me I'm not alone in this",tp:"s"},
+      {l:"C",v:"A new reframe that completely changes how I see my situation",tp:"e"},
+      {l:"D",v:"Realizing how much I'll lose if I stop — the real cost of quitting",tp:"k"} ] },
+  { t:"Which coaching session would you look forward to the most?", x:"",
+    o:[
+      {l:"A",v:"A quarterly review where we map all my wins and set bigger targets",tp:"a"},
+      {l:"B",v:"A session deeply exploring my most important relationship",tp:"s"},
+      {l:"C",v:"An unstructured session where we follow curiosity wherever it leads",tp:"e"},
+      {l:"D",v:"A session where my coach challenges me harder than anyone has before",tp:"k"} ] },
+  { t:"What would make you most likely to refer a friend to your coach?", x:"",
+    o:[
+      {l:"A",v:"I hit a specific measurable goal I'd been chasing for years",tp:"a"},
+      {l:"B",v:"My closest relationships noticeably and visibly improved",tp:"s"},
+      {l:"C",v:"I had a breakthrough insight that changed how I see my entire life",tp:"e"},
+      {l:"D",v:"I did something I genuinely believed I was incapable of doing",tp:"k"} ] },
+  { t:"What kind of homework feels most motivating to you?", x:"",
+    o:[
+      {l:"A",v:"A specific action with a measurable outcome due before the next session",tp:"a"},
+      {l:"B",v:"A meaningful conversation with someone important in my life",tp:"s"},
+      {l:"C",v:"A journaling prompt or reading that deepens my self-understanding",tp:"e"},
+      {l:"D",v:"Something uncomfortable I've been avoiding — done before the week is out",tp:"k"} ] },
+  { t:"What do you find most frustrating in a coaching session?", x:"",
+    o:[
+      {l:"A",v:"Talking for an hour without a concrete next step or measurable output",tp:"a"},
+      {l:"B",v:"Feeling like my coach doesn't really see or understand me as a person",tp:"s"},
+      {l:"C",v:"Being given a prescriptive answer when I'm still exploring the question",tp:"e"},
+      {l:"D",v:"Being handled too carefully — I need real challenge, not gentle nudges",tp:"k"} ] },
+  { t:"What role do other people play in your personal growth?", x:"",
+    o:[
+      {l:"A",v:"Witnesses — their acknowledgment of my genuine progress matters to me",tp:"a"},
+      {l:"B",v:"Essential — I grow most deeply through relationship and shared experience",tp:"s"},
+      {l:"C",v:"Mirrors — they reveal things about me I couldn't see on my own",tp:"e"},
+      {l:"D",v:"Competition or accountability — I need real stakes involving real people",tp:"k"} ] },
+  { t:"What makes you genuinely trust a coach?", x:"",
+    o:[
+      {l:"A",v:"They have a proven repeatable system with measurable client results",tp:"a"},
+      {l:"B",v:"They genuinely care about me as a full person — not just a client",tp:"s"},
+      {l:"C",v:"They ask better questions than I could ever ask myself",tp:"e"},
+      {l:"D",v:"They don't back down when I push back — they hold their ground",tp:"k"} ] },
+  { t:"What would make you consider stopping coaching before the engagement ends?",
+    x:"Be honest — even if this isn't something you'd be proud to admit.",
+    o:[
+      {l:"A",v:"I stopped seeing measurable progress — the tangible results weren't showing up",tp:"a"},
+      {l:"B",v:"The relationship felt transactional — no genuine human connection with the coach",tp:"s"},
+      {l:"C",v:"It felt like a curriculum applied to me rather than a real exploration",tp:"e"},
+      {l:"D",v:"It was too comfortable — I wasn't being genuinely stretched or challenged",tp:"k"} ] },
+  { t:"How do you prefer to track your growth over time?", x:"",
+    o:[
+      {l:"A",v:"Numbers, scores, and progress bars — I want to watch the data move",tp:"a"},
+      {l:"B",v:"Stories — how my relationships and conversations have changed",tp:"s"},
+      {l:"C",v:"Insight maps — patterns that emerge across sessions and journal entries",tp:"e"},
+      {l:"D",v:"Before-and-after evidence of what I once avoided that I now face directly",tp:"k"} ] },
+  { t:"Which statement best describes your relationship with comfort zones?", x:"",
+    o:[
+      {l:"A",v:"I expand them deliberately — each new comfort zone is a metric of growth",tp:"a"},
+      {l:"B",v:"I expand them when I feel genuinely safe and supported by people I trust",tp:"s"},
+      {l:"C",v:"I question them — often a comfort zone is just an unexplored assumption",tp:"e"},
+      {l:"D",v:"I actively attack them — staying comfortable means I'm not growing",tp:"k"} ] },
+  { t:"When coaching gets hard and you want to quit, what would genuinely keep you in?",
+    x:"Think of a real moment of resistance — what would actually need to be true?",
+    o:[
+      {l:"A",v:"Seeing my score is still moving — concrete evidence the work is paying off",tp:"a"},
+      {l:"B",v:"My coach or a peer reaching out and reminding me I'm not alone in this",tp:"s"},
+      {l:"C",v:"Remembering a specific insight that changed everything — wanting more of that",tp:"e"},
+      {l:"D",v:"Knowing quitting means returning to exactly what I left — and I won't allow that",tp:"k"} ] },
+  { t:"What's your honest relationship with recognition and praise?", x:"",
+    o:[
+      {l:"A",v:"I need it to reflect real achievement — empty praise is worthless to me",tp:"a"},
+      {l:"B",v:"It matters deeply — feeling genuinely seen and acknowledged fuels my work",tp:"s"},
+      {l:"C",v:"I value it most when it names something I hadn't previously seen about myself",tp:"e"},
+      {l:"D",v:"I'm suspicious of it — honest challenge beats comfortable praise every time",tp:"k"} ] },
+  { t:"What does 'a life well-lived' genuinely mean to you?", x:"",
+    o:[
+      {l:"A",v:"One where I fully achieved what I set out to achieve — clear goals, clear results",tp:"a"},
+      {l:"B",v:"One defined by the quality and depth of the relationships I built",tp:"s"},
+      {l:"C",v:"One where I kept growing, questioning, and genuinely understanding more about life",tp:"e"},
+      {l:"D",v:"One where I pushed every meaningful limit — nothing safely left untested",tp:"k"} ] },
+  { t:"If your coaching journey were a story, which genre would it be?",
+    x:"The most honest question in the assessment — go completely with your gut.",
+    o:[
+      {l:"A",v:"A sports biography — clear goals, obstacles overcome, championship ultimately won",tp:"a"},
+      {l:"B",v:"A memoir — about the people, relationships, and love that shaped a life",tp:"s"},
+      {l:"C",v:"A philosophical journey — a mind transforming through discovery and questions",tp:"e"},
+      {l:"D",v:"An adventure story — someone who faced every genuine fear and proved all limits wrong",tp:"k"} ] }
+];
+
+const TD = {
+  a:{
+    name:"The Achiever", icon:"▲", iconCls:"ic-a", lblCls:"la", heroCls:"rh-a", barCls:"sb-a",
+    label:"ACHIEVER TYPE",
+    tagline:"You are driven by measurable progress, visible wins, and status milestones. You need proof the work is working — early and consistently.",
+    drives:["CD2 Accomplishment","CD4 Ownership","CD6 Scarcity","CD8 Avoidance"],
+    strengths:"High action-completion rate, responds powerfully to frameworks, holds commitments publicly, motivated by data and visible scores.",
+    watchout:"May rush to results before necessary inner work. Prone to disengaging when progress feels invisible. Coach must make progress measurable from session one.",
+    approach:"Launch XP system and badge roadmap in week one. Engineer a visible win before session two. Every session opens with wins. Quarterly Level Up is the peak ritual.",
+    secondary:"Your blend combines relentless Achiever drive with the depth of your secondary type.",
+    firstSession:[
+      {text:"<strong>Your first win is engineered before you leave.</strong> You'll commit to one specific micro-action due before your next session — something 85% achievable, with a measurable proof of completion."},
+      {text:"<strong>Your XP system launches today.</strong> You'll receive your personal tracking dashboard and see your badge roadmap — all 10 milestones across 18 months displayed upfront."},
+      {text:"<strong>Your Life Audit is scored and analyzed.</strong> You'll see exactly where your numbers are and set the first quarterly targets with clear metrics attached."},
+      {text:"<strong>The Cost of Inaction is calculated together.</strong> You'll look clearly at what another year without change actually costs — in numbers you write yourself."}
+    ],
+    recs:[
+      {ph:"Discovery", phCls:"ph-disc", t:"<strong>Cost of Inaction exercise</strong> — calculate the exact price of another year unchanged"},
+      {ph:"Onboarding", phCls:"ph-onb", t:"<strong>XP + badge roadmap revealed</strong> — all 10 milestones visible from day one"},
+      {ph:"Momentum", phCls:"ph-mom", t:"<strong>Weekly win log</strong> — every session opens with scored achievements and live XP update"},
+      {ph:"Deepening", phCls:"ph-deep", t:"<strong>Public stretch goal declaration</strong> — social stakes dramatically amplify commitment"},
+      {ph:"Mastery", phCls:"ph-mast", t:"<strong>Teach-back to group</strong> — earn the rarest badge by demonstrating mastery publicly"},
+      {ph:"Legacy", phCls:"ph-leg", t:"<strong>Capstone scoreboard</strong> — 18-month XP, all badges, before/after metrics in one document"}
+    ],
+    xpAmt:150, xpMsg:"150 XP earned · Assessment complete. You're on the board."
+  },
+  s:{
+    name:"The Socializer", icon:"◎", iconCls:"ic-s", lblCls:"ls", heroCls:"rh-s", barCls:"sb-s",
+    label:"SOCIALIZER TYPE",
+    tagline:"You grow through connection, belonging, and being witnessed. The relationship with your coach and community isn't a nice-to-have — it's the actual work.",
+    drives:["CD5 Social Influence","CD1 Epic Meaning","CD3 Empowerment","CD7 Unpredictability"],
+    strengths:"Deep vulnerability in sessions, natural referral generator, creates community warmth, retains through the strength of relationships.",
+    watchout:"May avoid difficult inner work to preserve the relational dynamic. Disengages fast when the coach feels transactional or outcome-only focused.",
+    approach:"Peer match in weeks 2–3 before anything gets hard. Monthly group circles non-optional. Community recognition hits deeper than coach praise. Alumni induction is the graduation moment.",
+    secondary:"Your blend combines deep Socializer connection instincts with the strengths of your secondary type.",
+    firstSession:[
+      {text:"<strong>The relationship begins — genuinely.</strong> Session one is designed so you feel truly known before any goal is set. Your coach will spend real time simply understanding you as a full person."},
+      {text:"<strong>Your peer match is set up.</strong> Before session two, you'll be introduced to one other client at a similar life stage — someone who will know you're on this journey from the beginning."},
+      {text:"<strong>Your community invitation is sent.</strong> You'll receive your first monthly group circle invite — a space where real connection and shared growth happen alongside your 1:1 work."},
+      {text:"<strong>Your first win is shared, not just recorded.</strong> The action you commit to at session one is designed to involve or be shared with someone who matters to you."}
+    ],
+    recs:[
+      {ph:"Discovery", phCls:"ph-disc", t:"<strong>Peer matching</strong> — introduction to one client at a similar stage within first three weeks"},
+      {ph:"Onboarding", phCls:"ph-onb", t:"<strong>Group circle invitation</strong> — seated next to a more advanced client for organic mentoring"},
+      {ph:"Momentum", phCls:"ph-mom", t:"<strong>Win-sharing community channel</strong> — peer celebrations hit deeper than coach praise alone"},
+      {ph:"Deepening", phCls:"ph-deep", t:"<strong>Alumni mentor match</strong> — personal bond with someone who completed the full 18-month journey"},
+      {ph:"Mastery", phCls:"ph-mast", t:"<strong>Breakthrough story presentation</strong> — witnessed by the full community at your most honest"},
+      {ph:"Legacy", phCls:"ph-leg", t:"<strong>Alumni induction</strong> — named, welcomed, and given a meaningful role in the community"}
+    ],
+    xpAmt:150, xpMsg:"150 XP earned · Assessment complete. Your journey starts with connection."
+  },
+  e:{
+    name:"The Explorer", icon:"◈", iconCls:"ic-e", lblCls:"le", heroCls:"rh-e", barCls:"sb-e",
+    label:"EXPLORER TYPE",
+    tagline:"You are energized by self-discovery, insight, and mapping inner territory. You need the coaching journey to feel like a genuine expedition — not a curriculum applied to you.",
+    drives:["CD3 Empowerment","CD7 Unpredictability","CD1 Epic Meaning","CD5 Social Influence"],
+    strengths:"Generates breakthrough insights, questions assumptions deeply, builds powerful personal frameworks, intrinsically motivated to understand.",
+    watchout:"Analysis paralysis — discovers without committing. May intellectualize feelings to avoid experiencing them. Needs structure to move, not so much it forecloses exploration.",
+    approach:"Hero's Journey framing at session one. Self-chosen coaching track. Quarterly pattern interrupts. Personal Playbook from month 8. Sealed letter opened at month 18.",
+    secondary:"Your blend combines Explorer depth and curiosity with the momentum of your secondary type.",
+    firstSession:[
+      {text:"<strong>Your journey is named.</strong> Session one opens with the Hero's Journey mapping — your life story placed on a mythic arc, with your coaching journey as the expedition into unknown territory."},
+      {text:"<strong>You choose your own track.</strong> You'll be presented with five possible coaching directions and choose the one that feels most alive right now. This is your expedition — you are the cartographer."},
+      {text:"<strong>A letter to your future self is written and sealed.</strong> At session one, you write a letter that will not be opened until month 18. The gap between who writes it and who reads it will be the measure of everything."},
+      {text:"<strong>Your first pattern interrupt is teased.</strong> You'll know that one session per quarter will be a completely unexpected format — unknown until it arrives. This is your first taste of the journey's intentional unpredictability."}
+    ],
+    recs:[
+      {ph:"Discovery", phCls:"ph-disc", t:"<strong>Hero's Journey mapping</strong> — your life story reframed as an epic expedition into unknown territory"},
+      {ph:"Onboarding", phCls:"ph-onb", t:"<strong>Self-chosen coaching track</strong> — full authorship of the journey direction from day one"},
+      {ph:"Momentum", phCls:"ph-mom", t:"<strong>Quarterly pattern interrupt sessions</strong> — unexpected formats that prevent habituation"},
+      {ph:"Deepening", phCls:"ph-deep", t:"<strong>Personal Playbook launch</strong> — you build your own framework library, coach as collaborator"},
+      {ph:"Mastery", phCls:"ph-mast", t:"<strong>Serendipity Log</strong> — tracks non-linear unexpected outcomes that followed from your actions"},
+      {ph:"Legacy", phCls:"ph-leg", t:"<strong>Sealed letter opened</strong> — written at session one, read at month 18 to reveal the full arc"}
+    ],
+    xpAmt:150, xpMsg:"150 XP earned · Assessment complete. The expedition has begun."
+  },
+  k:{
+    name:"The Challenger", icon:"◆", iconCls:"ic-k", lblCls:"lk", heroCls:"rh-k", barCls:"sb-k",
+    label:"CHALLENGER TYPE",
+    tagline:"You are motivated by real stakes, overcoming resistance, and proving limits genuinely wrong. Gentle coaching loses you. You need a coach who will not back down.",
+    drives:["CD8 Avoidance","CD2 Accomplishment","CD6 Scarcity","CD4 Ownership"],
+    strengths:"Extreme commitment when stakes are real, generates momentum through resistance, self-directed at mastery, produces the most powerful transformation stories.",
+    watchout:"Loses respect for coaches who are too accommodating. May use intensity to avoid vulnerability. Needs genuine difficulty — not performed challenge.",
+    approach:"Cost of Inaction at discovery. Self-authored commitment contract in onboarding. XP decay for momentum. Old Self dossier for deepening. Alternative Timeline at month 17.",
+    secondary:"Your blend combines Challenger fire and intensity with the grounding of your secondary type.",
+    firstSession:[
+      {text:"<strong>The Cost of Inaction is calculated — by you.</strong> Session one opens with a hard look at what another year without change actually costs: in income, relationships, time, and self-respect. You write the number yourself."},
+      {text:"<strong>Your commitment contract is drafted.</strong> You write your own stakes — the consequences you personally define for quitting early. Your coach witnesses it. It goes into the vault for the moment you need it most."},
+      {text:"<strong>The Old Self dossier is started and sealed.</strong> You write a detailed portrait of the person you are committing to leave behind. It will be read back to you exactly when resistance peaks and the old self pulls hardest."},
+      {text:"<strong>Your first real challenge is assigned.</strong> Before you leave session one, you'll commit to something genuinely uncomfortable — not designed to be easy. This is how your journey starts: with a move that costs something."}
+    ],
+    recs:[
+      {ph:"Discovery", phCls:"ph-disc", t:"<strong>Cost of Inaction exercise</strong> — you calculate the exact arithmetic of staying the same"},
+      {ph:"Onboarding", phCls:"ph-onb", t:"<strong>Self-authored commitment contract</strong> — your stakes, your consequences, your handwriting"},
+      {ph:"Momentum", phCls:"ph-mom", t:"<strong>XP decay mechanic</strong> — visible score loss after 14 consecutive days of inactivity"},
+      {ph:"Deepening", phCls:"ph-deep", t:"<strong>Old Self dossier</strong> — sealed at session one, opened at the moment of peak resistance"},
+      {ph:"Mastery", phCls:"ph-mast", t:"<strong>Voluntary stakes escalation</strong> — you raise your own consequences at the mastery stage"},
+      {ph:"Legacy", phCls:"ph-leg", t:"<strong>Alternative Timeline</strong> — vivid portrait of who you'd be without this work, written at month 17"}
+    ],
+    xpAmt:150, xpMsg:"150 XP earned · Assessment complete. The resistance starts now."
+  }
+};
+
+const TNAMES = {a:"Achiever", s:"Socializer", e:"Explorer", k:"Challenger"};
+const TICONS = {a:"▲", s:"◎", e:"◈", k:"◆"};
+
+let current = 0;
+let answers = new Array(15).fill(null);
+let clientName = "";
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function beginTest(){
+  clientName = (document.getElementById('client-name').value.trim() || "You");
+  show('screen-test');
+  renderQ();
+}
+
+function renderQ(){
+  const q = QUESTIONS[current], n = current + 1;
+  document.getElementById('q-num').textContent = 'QUESTION ' + String(n).padStart(2, '0');
+  document.getElementById('q-text').textContent = q.t;
+  const qx = document.getElementById('q-ctx');
+  if (q.x) { qx.textContent = q.x; qx.style.display = 'block'; }
+  else { qx.style.display = 'none'; }
+  const pct = Math.round((current / 15) * 100);
+  document.getElementById('prog-label').textContent = 'Question ' + n + ' of 15';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  const op = document.getElementById('opts'); op.innerHTML = '';
+  q.o.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'opt' + (answers[current] === o.tp ? ' sel' : '');
+    b.innerHTML = '<span class="olbl">' + o.l + '</span><span>' + o.v + '</span>';
+    b.onclick = () => {
+      answers[current] = o.tp;
+      document.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      document.getElementById('next-btn').disabled = false;
+    };
+    op.appendChild(b);
+  });
+  document.getElementById('next-btn').disabled = answers[current] === null;
+  document.getElementById('next-btn').textContent = current === 14 ? 'See my results →' : 'Next →';
+  const bb = document.getElementById('back-btn');
+  bb.classList.toggle('hidden', current === 0);
+  const dt = document.getElementById('dots'); dt.innerHTML = '';
+  for (let i = 0; i < 15; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' cur' : answers[i] !== null ? ' ans' : '');
+    dt.appendChild(d);
+  }
+}
+
+function goNext(){ if (current === 14) { buildResults(); return; } current++; renderQ(); }
+function goBack(){ if (current > 0) { current--; renderQ(); } }
+
+/* ============================================================
+   RESULTS
+   ============================================================ */
+function buildResults(){
+  const c = {a:0, s:0, e:0, k:0};
+  answers.forEach(a => { if (a) c[a]++; });
+  const tot = Object.values(c).reduce((x, y) => x + y, 0);
+  const sorted = Object.entries(c).sort((a, b) => b[1] - a[1]);
+  const p = sorted[0][0], T = TD[p];
+
+  document.getElementById('res-greeting').textContent =
+    clientName && clientName !== "You" ? (clientName.toUpperCase() + "'S RESULTS") : "YOUR RESULTS";
+
+  document.getElementById('xp-val').textContent = T.xpAmt + ' XP';
+  document.getElementById('xp-caption').textContent = T.xpMsg;
+
+  const rh = document.getElementById('result-hero');
+  rh.className = 'result-hero ' + T.heroCls;
+  rh.innerHTML = `<div class="rh-top">
+    <div class="rh-icon ${T.iconCls}">${T.icon}</div>
+    <div style="min-width:0;flex:1">
+      <div class="rh-lbl ${T.lblCls}">${T.label}</div>
+      <div class="rh-name">${T.name}</div>
+      <div class="rh-tag">${T.tagline}</div>
+    </div>
+  </div>`;
+
+  const sb = document.getElementById('score-bars'); sb.innerHTML = '';
+  sorted.forEach(([tp, cnt]) => {
+    const pct = Math.round((cnt / tot) * 100);
+    const TD2 = TD[tp];
+    sb.innerHTML += `<div class="srow">
+      <div class="slbl"><span class="sym">${TICONS[tp]}</span> ${TNAMES[tp]}</div>
+      <div class="strack"><div class="sbar ${TD2.barCls}" data-w="${pct}%"></div></div>
+      <div class="spct">${pct}%</div>
+    </div>`;
+  });
+
+  const bp = document.getElementById('blueprint');
+  bp.innerHTML = `<h3>Moments you'll look forward to</h3>
+    <p>Based on your ${T.name.replace('The ', '')} profile, here are the milestones across your 18-month journey specifically designed to energize someone like you.</p>`;
+  T.recs.forEach(r => {
+    bp.innerHTML += `<div class="bp-item">
+      <span class="bp-phase ${r.phCls}">${r.ph}</span>
+      <div class="bp-text">${r.t}</div>
+    </div>`;
+  });
+
+  const fs = document.getElementById('first-session');
+  fs.innerHTML = `<div class="fs-header">
+    <div class="fs-badge">${T.icon}</div>
+    <div class="fsh">What to expect in your first session</div>
+  </div>
+  <p class="fsp">Your first session is tailored to how you're wired as ${T.name.replace('The ', '')} type. Here's what's being designed for you.</p>
+  <div class="fs-items" id="fs-list"></div>`;
+
+  const fsl = document.getElementById('fs-list');
+  T.firstSession.forEach((item, i) => {
+    fsl.innerHTML += `<div class="fsi">
+      <div class="fsi-num">${i + 1}</div>
+      <div class="fsi-body">${item.text}</div>
+    </div>`;
+  });
+
+  show('screen-result');
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.getElementById('xp-fill').style.width = '68%';
+      document.querySelectorAll('.sbar[data-w]').forEach(bar => {
+        bar.style.width = bar.getAttribute('data-w');
+      });
+    }, 200);
+  });
+
+  setTimeout(() => { autoSendToCoach(); }, 800);
+}
+
+/* ============================================================
+   EMAIL
+   ============================================================ */
+const COACH_EMAIL = 'coachty@chutelifecoaching.com';
+
+function buildEmailBody(cName, T, sorted, tot){
+  const primPct = Math.round((sorted[0][1] / tot) * 100);
+  const sec = sorted[1][0], secT = TD[sec];
+  const secPct = Math.round((sorted[1][1] / tot) * 100);
+  const scoreBreakdown = sorted.map(([tp, cnt]) =>
+    `${TICONS[tp]} ${TNAMES[tp]}: ${Math.round((cnt / tot) * 100)}%`
+  ).join(' | ');
+  const recsText = T.recs.map(r => `[${r.ph}] ${r.t.replace(/<[^>]+>/g, '')}`).join('\n');
+  return `CHUTE COACHING — PLAYER TYPE ASSESSMENT RESULTS
+Client: ${cName}
+Primary Type: ${T.name} (${primPct}%)
+Secondary Type: ${secT.name} (${secPct}%)
+
+═══════════════════════════════════════
+TYPE SCORES
+═══════════════════════════════════════
+${scoreBreakdown}
+
+═══════════════════════════════════════
+TYPE PROFILE
+═══════════════════════════════════════
+Type: ${T.label}
+Summary: ${T.tagline}
+
+Primary Octalysis Drives: ${T.drives.join(', ')}
+
+Secondary Type Blend: ${T.secondary}
+
+═══════════════════════════════════════
+COACHING INTELLIGENCE
+═══════════════════════════════════════
+STRENGTHS:
+${T.strengths}
+
+COACH WATCH-OUT:
+${T.watchout}
+
+RECOMMENDED APPROACH:
+${T.approach}
+
+═══════════════════════════════════════
+18-MONTH BLUEPRINT
+═══════════════════════════════════════
+${recsText}
+
+═══════════════════════════════════════
+FIRST SESSION DESIGN NOTES
+═══════════════════════════════════════
+${T.firstSession.map((f, i) => `${i + 1}. ${f.text.replace(/<[^>]+>/g, '')}`).join('\n')}
+
+═══════════════════════════════════════
+Chute Life Coaching · Take the leap
+Based on Yu-Kai Chou's Octalysis Framework × Richard Bartle's Player Types
+`;
+}
+
+function autoSendToCoach(){
+  const c = {a:0, s:0, e:0, k:0};
+  answers.forEach(a => { if (a) c[a]++; });
+  const tot = Object.values(c).reduce((x, y) => x + y, 0);
+  const sorted = Object.entries(c).sort((a, b) => b[1] - a[1]);
+  const T = TD[sorted[0][0]];
+  const subject = encodeURIComponent(`Coaching Assessment Results — ${clientName} (${T.name})`);
+  const body = encodeURIComponent(buildEmailBody(clientName, T, sorted, tot));
+  window.open(`mailto:${COACH_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+  document.getElementById('auto-send-notice').style.display = 'block';
+}
+
+function openEmailModal(){
+  document.getElementById('modal-inner').innerHTML = getModalFormHTML();
+  document.getElementById('modal-bg').classList.remove('hidden');
+}
+function getModalFormHTML(){
+  return `<h2>Email results to your coach</h2>
+    <p>Your coach's email is pre-filled. They'll receive your complete assessment — type profile, Octalysis drives, strengths, watch-outs, and full 18-month blueprint.</p>
+    <label>COACH'S EMAIL ADDRESS</label>
+    <input type="email" id="coach-email" value="${COACH_EMAIL}" placeholder="coach@example.com" />
+    <label>YOUR NAME</label>
+    <input type="text" id="modal-client-name" value="${clientName}" readonly style="opacity:.7;cursor:default" />
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="send" onclick="sendEmail()">Send results</button>
+    </div>`;
+}
+function closeModal(){ document.getElementById('modal-bg').classList.add('hidden'); }
+document.getElementById('modal-bg').addEventListener('click', function(e){ if (e.target === this) closeModal(); });
+
+function sendEmail(){
+  const email = document.getElementById('coach-email').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('coach-email').style.borderColor = 'var(--danger)';
+    document.getElementById('coach-email').focus();
+    return;
+  }
+  const c = {a:0, s:0, e:0, k:0};
+  answers.forEach(a => { if (a) c[a]++; });
+  const tot = Object.values(c).reduce((x, y) => x + y, 0);
+  const sorted = Object.entries(c).sort((a, b) => b[1] - a[1]);
+  const T = TD[sorted[0][0]];
+  const subject = encodeURIComponent(`Coaching Assessment Results — ${clientName} (${T.name})`);
+  const body = encodeURIComponent(buildEmailBody(clientName, T, sorted, tot));
+  window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+
+  setTimeout(() => {
+    document.getElementById('modal-inner').innerHTML = `
+      <div class="sent-confirm">
+        <div class="checkmark">✓</div>
+        <h3>Results sent.</h3>
+        <p>Your coach will get ${clientName}'s full breakdown — type profile, drives, strengths, watch-outs, and 18-month blueprint. Your first session will be designed around your results.</p>
+        <div class="modal-actions" style="justify-content:center">
+          <button onclick="closeModal()">Close</button>
+        </div>
+      </div>`;
+  }, 600);
+}
+
+function saveResults(){
+  const w = window.open('', '_blank');
+  const styles = Array.from(document.styleSheets).map(s => {
+    try { return Array.from(s.cssRules).map(r => r.cssText).join('\n'); }
+    catch (e) { return ''; }
+  }).join('\n');
+  w.document.write(`<!DOCTYPE html><html><head><title>Assessment Results — ${clientName}</title>
+    <style>
+      ${styles}
+      .result-actions, #auto-send-notice { display: none !important; }
+      .screen { display: block !important; }
+      body { padding: 32px 0; }
+      @media print { body { padding: 0; } }
+    </style>
+  </head><body>
+    <div class="shell">
+      ${document.getElementById('screen-result').innerHTML}
+    </div>
+    <script>window.onload = function() { window.print(); }<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+function retakeTest(){
+  current = 0;
+  answers = new Array(15).fill(null);
+  clientName = "";
+  document.getElementById('client-name').value = '';
+  document.getElementById('auto-send-notice').style.display = 'none';
+  show('screen-intro');
+}
+</script>
+</body>
+</html>

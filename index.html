@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coaching Player Type Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F5F0; --surface:#FFFFFF; --deep:#1A1830;
+  --a:#5B4FCF; --s:#1D9E75; --e:#BA7517; --k:#D85A30;
+  --la:#EEEDFE; --ls:#E1F5EE; --le:#FAEEDA; --lk:#FAECE7;
+  --ma:#AFA9EC; --ms:#5DCAA5; --me:#EF9F27; --mk:#F0997B;
+  --border:#E5E3DC; --muted:#7A7870; --text:#1A1830;
+  --xp:#5B4FCF;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.shell{max-width:680px;margin:0 auto;padding:48px 24px 80px}
+.screen{display:none}.screen.active{display:block}
+
+/* ── SHARED ATOMS ── */
+.eyebrow{font-size:12px;font-weight:500;letter-spacing:2px;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--muted)}
+.serif{font-family:'DM Serif Display',serif}
+h1.serif{font-size:clamp(34px,5vw,52px);line-height:1.15;letter-spacing:-.5px;color:var(--deep);margin-bottom:14px}
+h1.serif em{font-style:italic;color:var(--a)}
+.sub{font-size:16px;color:var(--muted);line-height:1.75;margin-bottom:32px;max-width:500px}
+.btn-primary{display:block;width:100%;padding:17px 24px;background:var(--deep);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:17px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .1s;letter-spacing:.2px}
+.btn-primary:hover{opacity:.87}.btn-primary:active{transform:scale(.99)}
+.btn-outline{padding:11px 22px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--text);cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn-outline:hover:not(:disabled){border-color:#C0BEDD;background:#FAFAFE}
+.btn-outline:disabled{opacity:.35;cursor:not-allowed}
+.btn-outline.hidden{visibility:hidden}
+
+/* ── INTRO ── */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px}
+.tcard{padding:15px;border-radius:12px;border:1px solid var(--border);background:var(--surface);transition:transform .15s}
+.tcard:hover{transform:translateY(-2px)}
+.tcard.ta{border-left:3px solid var(--a)}.tcard.ts{border-left:3px solid var(--s)}
+.tcard.te{border-left:3px solid var(--e)}.tcard.tk{border-left:3px solid var(--k)}
+.tsym{font-size:22px;margin-bottom:5px;display:block}
+.ta .tsym{color:var(--a)}.ts .tsym{color:var(--s)}.te .tsym{color:var(--e)}.tk .tsym{color:var(--k)}
+.tname{font-size:14px;font-weight:500;color:var(--deep);margin-bottom:2px}
+.tdesc{font-size:13px;color:var(--muted);line-height:1.5}
+.note{font-size:13px;color:var(--muted);text-align:center;margin-top:11px;line-height:1.6}
+
+/* ── TEST ── */
+.prog-wrap{margin-bottom:28px}
+.prog-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:7px;font-weight:500;letter-spacing:.5px}
+.prog-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--a);border-radius:2px;transition:width .4s ease}
+.qnum{font-size:12px;font-weight:500;letter-spacing:1.5px;color:var(--muted);margin-bottom:9px}
+.qtext{font-family:'DM Serif Display',serif;font-size:clamp(20px,3vw,26px);color:var(--deep);line-height:1.4;margin-bottom:7px}
+.qctx{font-size:14px;color:var(--muted);font-style:italic;margin-bottom:18px;line-height:1.6;padding-left:12px;border-left:2px solid var(--border)}
+.opts{display:flex;flex-direction:column;gap:7px;margin-bottom:22px}
+.opt{padding:15px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);line-height:1.5;transition:all .12s;display:flex;gap:10px;align-items:flex-start}
+.opt:hover{border-color:#C0BEDD;background:#FAFAFE}
+.opt.sel{border-color:var(--a);background:var(--la);color:#3C3489}
+.olbl{font-size:12px;font-weight:500;color:var(--muted);min-width:13px;padding-top:1px}
+.opt.sel .olbl{color:var(--a)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;flex:1}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s;flex-shrink:0}
+.dot.ans{background:var(--ma)}.dot.cur{background:var(--a)}
+#next-btn.primary-nav{background:var(--deep);color:#fff;border-color:var(--deep)}
+#next-btn.primary-nav:hover:not(:disabled){opacity:.85;background:var(--deep)}
+
+/* ── NAME CAPTURE ── */
+.name-screen{max-width:420px}
+.name-screen h2{font-family:'DM Serif Display',serif;font-size:32px;color:var(--deep);margin-bottom:8px}
+.name-screen p{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:24px}
+.field-group{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.field-group label{font-size:13px;font-weight:500;letter-spacing:.8px;color:var(--muted)}
+.field-group input{padding:14px 16px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+.field-group input:focus{border-color:var(--a)}
+
+/* ── RESULTS CLIENT ── */
+.xp-intro{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:22px}
+.xp-intro-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.xp-intro-lbl{font-size:12px;font-weight:500;letter-spacing:1.2px;color:var(--muted)}
+.xp-val{font-size:15px;font-weight:500;color:var(--a)}
+.xp-bar-track{height:10px;background:var(--la);border-radius:6px;overflow:hidden;margin-bottom:6px}
+.xp-bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--ma),var(--a));width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.xp-caption{font-size:13px;color:var(--muted);line-height:1.5}
+.result-hero{padding:22px;border-radius:14px;margin-bottom:20px;border:1px solid}
+.rh-a{background:var(--la);border-color:var(--ma)}.rh-s{background:var(--ls);border-color:var(--ms)}
+.rh-e{background:var(--le);border-color:var(--me)}.rh-k{background:var(--lk);border-color:var(--mk)}
+.rh-top{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.rh-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.ic-a{background:var(--ma);color:#26215C}.ic-s{background:var(--ms);color:#04342C}
+.ic-e{background:var(--me);color:#412402}.ic-k{background:var(--mk);color:#4A1B0C}
+.rh-lbl{font-size:12px;font-weight:500;letter-spacing:1.2px;margin-bottom:3px}
+.la{color:var(--a)}.ls{color:var(--s)}.le{color:var(--e)}.lk{color:var(--k)}
+.rh-name{font-family:'DM Serif Display',serif;font-size:30px;color:var(--deep);margin-bottom:4px}
+.rh-tag{font-size:14px;color:var(--muted);line-height:1.6}
+.sec-eyebrow{font-size:12px;font-weight:500;letter-spacing:1.2px;color:var(--muted);margin-bottom:9px;margin-top:20px}
+.score-bars{margin-bottom:4px}
+.srow{display:grid;grid-template-columns:100px 1fr 40px;gap:9px;align-items:center;margin-bottom:8px}
+.slbl{font-size:13px;font-weight:500;color:var(--muted)}
+.strack{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.sbar{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.sb-a{background:var(--a)}.sb-s{background:var(--s)}.sb-e{background:var(--e)}.sb-k{background:var(--k)}
+.spct{font-size:13px;font-weight:500;color:var(--muted);text-align:right}
+.blueprint-client{margin-bottom:22px}
+.blueprint-client h3{font-family:'DM Serif Display',serif;font-size:24px;color:var(--deep);margin-bottom:4px}
+.blueprint-client p{font-size:14px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.bp-item{display:grid;grid-template-columns:80px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:start}
+.bp-item:last-child{border-bottom:none}
+.bp-phase{font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;white-space:nowrap;text-align:center;margin-top:2px;letter-spacing:.3px}
+.bp-text{font-size:14px;color:var(--muted);line-height:1.6}
+.bp-text strong{color:var(--deep);font-weight:500}
+.first-session{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:22px}
+.fs-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.fs-badge{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fsh{font-family:'DM Serif Display',serif;font-size:20px;color:var(--deep)}
+.fsp{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.fs-items{display:flex;flex-direction:column;gap:8px}
+.fsi{display:flex;gap:10px;align-items:flex-start}
+.fsi-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;margin-top:1px}
+.fsi-body{font-size:14px;color:var(--muted);line-height:1.6}
+.fsi-body strong{color:var(--deep);font-weight:500}
+.result-actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 0 16px;border-bottom:1px solid var(--border);margin-bottom:22px}
+.result-actions button{padding:12px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .12s}
+.result-actions button:hover{border-color:#C0BEDD}
+.result-actions button.accent{background:var(--a);color:#fff;border-color:var(--a)}
+.result-actions button.accent:hover{opacity:.87}
+
+/* ── EMAIL MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(26,24,48,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+.modal-bg.hidden{display:none}
+.modal{background:var(--surface);border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid var(--border)}
+.modal h2{font-family:'DM Serif Display',serif;font-size:24px;color:var(--deep);margin-bottom:6px}
+.modal p{font-size:15px;color:var(--muted);margin-bottom:20px;line-height:1.65}
+.modal label{font-size:13px;font-weight:500;letter-spacing:.8px;color:var(--muted);display:block;margin-bottom:5px}
+.modal input{width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;margin-bottom:16px}
+.modal input:focus{border-color:var(--a)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.modal-actions button{padding:11px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .12s}
+.modal-actions button.send{background:var(--deep);color:#fff;border-color:var(--deep)}
+.modal-actions button.send:hover{opacity:.85}
+.sent-confirm{text-align:center;padding:20px 0}
+.sent-confirm .checkmark{width:52px;height:52px;border-radius:50%;background:var(--ls);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;color:var(--s)}
+.sent-confirm h3{font-size:19px;font-weight:500;color:var(--deep);margin-bottom:6px}
+.sent-confirm p{font-size:14px;color:var(--muted);line-height:1.6}
+
+@media(max-width:480px){
+  .type-grid{grid-template-columns:1fr}
+  .bp-item{grid-template-columns:1fr;gap:4px}
+  .srow{grid-template-columns:72px 1fr 30px}
+  .modal{padding:20px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- INTRO -->
+<div id="screen-intro" class="screen active">
+  <div class="eyebrow">Life Coaching Assessment</div>
+  <h1 class="serif">Find your <em>coaching</em><br>player type</h1>
+  <p class="sub">15 questions · ~3 minutes · Based on Bartle's Player Types adapted for life coaching. Choose what feels most true — not most aspirational.</p>
+  <div class="type-grid">
+    <div class="tcard ta"><span class="tsym">▲</span><div class="tname">Achiever</div><div class="tdesc">Driven by measurable wins, progress tracking, and status milestones</div></div>
+    <div class="tcard ts"><span class="tsym">◎</span><div class="tname">Socializer</div><div class="tdesc">Motivated by connection, belonging, and being witnessed by others</div></div>
+    <div class="tcard te"><span class="tsym">◈</span><div class="tname">Explorer</div><div class="tdesc">Energized by self-discovery, insight, and mapping inner territory</div></div>
+    <div class="tcard tk"><span class="tsym">◆</span><div class="tname">Challenger</div><div class="tdesc">Fueled by real stakes, overcoming resistance, and proving limits wrong</div></div>
+  </div>
+  <button class="btn-primary" onclick="show('screen-name')">Begin assessment</button>
+  <p class="note">Your results shape how your entire coaching journey is designed. No right or wrong answers.</p>
+</div>
+
+<!-- NAME CAPTURE -->
+<div id="screen-name" class="screen">
+  <div class="name-screen">
+    <div class="eyebrow">Before we begin</div>
+    <h2 class="serif">Tell us a little about you</h2>
+    <p>Your name helps personalize your results. Your coach will receive a copy of your full assessment when you're done.</p>
+    <div class="field-group">
+      <label>YOUR FIRST NAME</label>
+      <input type="text" id="client-name" placeholder="e.g. Jordan" autocomplete="given-name" />
+    </div>
+    <button class="btn-primary" onclick="beginTest()">Start the assessment</button>
+  </div>
+</div>
+
+<!-- TEST -->
+<div id="screen-test" class="screen">
+  <div class="prog-wrap">
+    <div class="prog-meta"><span id="prog-label">Question 1 of 15</span><span id="prog-pct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="qnum" id="q-num">QUESTION 01</div>
+  <div class="qtext" id="q-text"></div>
+  <div class="qctx" id="q-ctx"></div>
+  <div class="opts" id="opts"></div>
+  <div class="nav">
+    <button class="btn-outline hidden" id="back-btn" onclick="goBack()">Back</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn-outline primary-nav" id="next-btn" onclick="goNext()" disabled>Next</button>
+  </div>
+</div>
+
+<!-- RESULTS CLIENT -->
+<div id="screen-result" class="screen">
+  <div class="eyebrow" id="res-greeting">Your results</div>
+
+  <!-- Action Buttons (TOP) -->
+  <div class="result-actions">
+    <button class="accent" onclick="openEmailModal()">&#9993; Email my coach</button>
+    <button onclick="saveResults()">&#128190; Save results</button>
+    <button onclick="retakeTest()">&#8635; Retake</button>
+  </div>
+
+  <!-- Auto-send notice -->
+  <div id="auto-send-notice" style="display:none;background:#E1F5EE;border:1px solid var(--ms);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#085041;line-height:1.5">
+    ✓ <strong>Results auto-sent to your coach</strong> at coachty@chutelifecoaching.com
+  </div>
+
+  <!-- XP Welcome Bar -->
+  <div class="xp-intro">
+    <div class="xp-intro-top">
+      <span class="xp-intro-lbl">WELCOME XP — YOU'VE JUST EARNED YOUR FIRST POINTS</span>
+      <span class="xp-val" id="xp-val">0 XP</span>
+    </div>
+    <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-fill"></div></div>
+    <p class="xp-caption" id="xp-caption">Completing this assessment earns you your first XP in your coaching journey. Every session, commitment honored, and breakthrough discovered adds to your score over 18 months.</p>
+  </div>
+
+  <!-- Type Hero -->
+  <div id="result-hero" class="result-hero"></div>
+
+  <!-- Score bars -->
+  <div class="sec-eyebrow">YOUR TYPE SCORES</div>
+  <div class="score-bars" id="score-bars"></div>
+
+  <!-- Blueprint -->
+  <div class="blueprint-client" id="blueprint"></div>
+
+  <!-- First Session -->
+  <div class="first-session" id="first-session"></div>
+
+</div>
+
+</div><!-- /shell -->
+
+<!-- EMAIL MODAL -->
+<div class="modal-bg hidden" id="modal-bg">
+  <div class="modal" id="modal-inner">
+    <h2>Email your results to your coach</h2>
+    <p>Enter your coach's email address. They'll receive your full assessment breakdown including your type scores, Octalysis drives, strengths, watch-outs, and 18-month coaching blueprint.</p>
+    <label>COACH'S EMAIL ADDRESS</label>
+    <input type="email" id="coach-email" placeholder="coach@example.com" />
+    <label>YOUR NAME (auto-filled)</label>
+    <input type="text" id="modal-client-name" readonly style="opacity:.7;cursor:default" />
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="send" onclick="sendEmail()">Send results</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ─────────────────────────────────────────────────────── */
+const QUESTIONS = [
+  {
+    t:"When you complete something difficult, what matters most to you?",
+    x:"Think about a recent personal win — a hard conversation, a reached goal, a fear overcome.",
+    o:[
+      {l:"A",v:"Knowing my score improved and I can track the measurable progress",tp:"a"},
+      {l:"B",v:"Sharing it with someone who will genuinely celebrate with me",tp:"s"},
+      {l:"C",v:"Understanding why it worked — what I discovered about myself in the process",tp:"e"},
+      {l:"D",v:"That it was actually hard and I pushed through it anyway",tp:"k"}
+    ]
+  },
+  {
+    t:"Two months in, your momentum is slowing. What re-engages you fastest?",
+    x:"Be honest — what actually pulls you back, not what sounds most virtuous.",
+    o:[
+      {l:"A",v:"Seeing a concrete metric move — income, confidence score, or habits tracked",tp:"a"},
+      {l:"B",v:"A conversation with my coach or peer who reminds me I'm not alone in this",tp:"s"},
+      {l:"C",v:"A new reframe that completely changes how I see my situation",tp:"e"},
+      {l:"D",v:"Realizing how much I'll lose if I stop — the real cost of quitting",tp:"k"}
+    ]
+  },
+  {
+    t:"Which coaching session would you look forward to the most?",
+    x:"",
+    o:[
+      {l:"A",v:"A quarterly review where we map all my wins and set bigger targets",tp:"a"},
+      {l:"B",v:"A session deeply exploring my most important relationship",tp:"s"},
+      {l:"C",v:"An unstructured session where we follow curiosity wherever it leads",tp:"e"},
+      {l:"D",v:"A session where my coach challenges me harder than anyone has before",tp:"k"}
+    ]
+  },
+  {
+    t:"What would make you most likely to refer a friend to your coach?",
+    x:"",
+    o:[
+      {l:"A",v:"I hit a specific measurable goal I'd been chasing for years",tp:"a"},
+      {l:"B",v:"My closest relationships noticeably and visibly improved",tp:"s"},
+      {l:"C",v:"I had a breakthrough insight that changed how I see my entire life",tp:"e"},
+      {l:"D",v:"I did something I genuinely believed I was incapable of doing",tp:"k"}
+    ]
+  },
+  {
+    t:"What kind of homework feels most motivating to you?",
+    x:"",
+    o:[
+      {l:"A",v:"A specific action with a measurable outcome due before the next session",tp:"a"},
+      {l:"B",v:"A meaningful conversation with someone important in my life",tp:"s"},
+      {l:"C",v:"A journaling prompt or reading that deepens my self-understanding",tp:"e"},
+      {l:"D",v:"Something uncomfortable I've been avoiding — done before the week is out",tp:"k"}
+    ]
+  },
+  {
+    t:"What do you find most frustrating in a coaching session?",
+    x:"",
+    o:[
+      {l:"A",v:"Talking for an hour without a concrete next step or measurable output",tp:"a"},
+      {l:"B",v:"Feeling like my coach doesn't really see or understand me as a person",tp:"s"},
+      {l:"C",v:"Being given a prescriptive answer when I'm still exploring the question",tp:"e"},
+      {l:"D",v:"Being handled too carefully — I need real challenge, not gentle nudges",tp:"k"}
+    ]
+  },
+  {
+    t:"What role do other people play in your personal growth?",
+    x:"",
+    o:[
+      {l:"A",v:"Witnesses — their acknowledgment of my genuine progress matters to me",tp:"a"},
+      {l:"B",v:"Essential — I grow most deeply through relationship and shared experience",tp:"s"},
+      {l:"C",v:"Mirrors — they reveal things about me I couldn't see on my own",tp:"e"},
+      {l:"D",v:"Competition or accountability — I need real stakes involving real people",tp:"k"}
+    ]
+  },
+  {
+    t:"What makes you genuinely trust a coach?",
+    x:"",
+    o:[
+      {l:"A",v:"They have a proven repeatable system with measurable client results",tp:"a"},
+      {l:"B",v:"They genuinely care about me as a full person — not just a client",tp:"s"},
+      {l:"C",v:"They ask better questions than I could ever ask myself",tp:"e"},
+      {l:"D",v:"They don't back down when I push back — they hold their ground",tp:"k"}
+    ]
+  },
+  {
+    t:"What would make you consider stopping coaching before the engagement ends?",
+    x:"Be honest — even if this isn't something you'd be proud to admit.",
+    o:[
+      {l:"A",v:"I stopped seeing measurable progress — the tangible results weren't showing up",tp:"a"},
+      {l:"B",v:"The relationship felt transactional — no genuine human connection with the coach",tp:"s"},
+      {l:"C",v:"It felt like a curriculum applied to me rather than a real exploration",tp:"e"},
+      {l:"D",v:"It was too comfortable — I wasn't being genuinely stretched or challenged",tp:"k"}
+    ]
+  },
+  {
+    t:"How do you prefer to track your growth over time?",
+    x:"",
+    o:[
+      {l:"A",v:"Numbers, scores, and progress bars — I want to watch the data move",tp:"a"},
+      {l:"B",v:"Stories — how my relationships and conversations have changed",tp:"s"},
+      {l:"C",v:"Insight maps — patterns that emerge across sessions and journal entries",tp:"e"},
+      {l:"D",v:"Before-and-after evidence of what I once avoided that I now face directly",tp:"k"}
+    ]
+  },
+  {
+    t:"Which statement best describes your relationship with comfort zones?",
+    x:"",
+    o:[
+      {l:"A",v:"I expand them deliberately — each new comfort zone is a metric of growth",tp:"a"},
+      {l:"B",v:"I expand them when I feel genuinely safe and supported by people I trust",tp:"s"},
+      {l:"C",v:"I question them — often a comfort zone is just an unexplored assumption",tp:"e"},
+      {l:"D",v:"I actively attack them — staying comfortable means I'm not growing",tp:"k"}
+    ]
+  },
+  {
+    t:"When coaching gets hard and you want to quit, what would genuinely keep you in?",
+    x:"Think of a real moment of resistance — what would actually need to be true?",
+    o:[
+      {l:"A",v:"Seeing my score is still moving — concrete evidence the work is paying off",tp:"a"},
+      {l:"B",v:"My coach or a peer reaching out and reminding me I'm not alone in this",tp:"s"},
+      {l:"C",v:"Remembering a specific insight that changed everything — wanting more of that",tp:"e"},
+      {l:"D",v:"Knowing quitting means returning to exactly what I left — and I won't allow that",tp:"k"}
+    ]
+  },
+  {
+    t:"What's your honest relationship with recognition and praise?",
+    x:"",
+    o:[
+      {l:"A",v:"I need it to reflect real achievement — empty praise is worthless to me",tp:"a"},
+      {l:"B",v:"It matters deeply — feeling genuinely seen and acknowledged fuels my work",tp:"s"},
+      {l:"C",v:"I value it most when it names something I hadn't previously seen about myself",tp:"e"},
+      {l:"D",v:"I'm suspicious of it — honest challenge beats comfortable praise every time",tp:"k"}
+    ]
+  },
+  {
+    t:"What does 'a life well-lived' genuinely mean to you?",
+    x:"",
+    o:[
+      {l:"A",v:"One where I fully achieved what I set out to achieve — clear goals, clear results",tp:"a"},
+      {l:"B",v:"One defined by the quality and depth of the relationships I built",tp:"s"},
+      {l:"C",v:"One where I kept growing, questioning, and genuinely understanding more about life",tp:"e"},
+      {l:"D",v:"One where I pushed every meaningful limit — nothing safely left untested",tp:"k"}
+    ]
+  },
+  {
+    t:"If your coaching journey were a story, which genre would it be?",
+    x:"The most honest question in the assessment — go completely with your gut.",
+    o:[
+      {l:"A",v:"A sports biography — clear goals, obstacles overcome, championship ultimately won",tp:"a"},
+      {l:"B",v:"A memoir — about the people, relationships, and love that shaped a life",tp:"s"},
+      {l:"C",v:"A philosophical journey — a mind transforming through discovery and questions",tp:"e"},
+      {l:"D",v:"An adventure story — someone who faced every genuine fear and proved all limits wrong",tp:"k"}
+    ]
+  }
+];
+
+const TD = {
+  a:{
+    name:"The Achiever",icon:"▲",iconCls:"ic-a",lblCls:"la",heroCls:"rh-a",barCls:"sb-a",dcCls:"dc-a",
+    label:"ACHIEVER TYPE",
+    tagline:"You are driven by measurable progress, visible wins, and status milestones. You need proof the work is working — early and consistently.",
+    drives:["CD2 Accomplishment","CD4 Ownership","CD6 Scarcity","CD8 Avoidance"],
+    strengths:"High action-completion rate, responds powerfully to frameworks, holds commitments publicly, motivated by data and visible scores.",
+    watchout:"May rush to results before necessary inner work. Prone to disengaging when progress feels invisible. Coach must make progress measurable from session one.",
+    approach:"Launch XP system and badge roadmap in week one. Engineer a visible win before session two. Every session opens with wins. Quarterly Level Up is the peak ritual.",
+    secondary:"Your blend combines relentless Achiever drive with the depth of your secondary type.",
+    firstSession:[
+      {icon:"▲",ic:"ic-a",text:"<strong>Your first win is engineered before you leave.</strong> You'll commit to one specific micro-action due before your next session — something 85% achievable, with a measurable proof of completion."},
+      {icon:"◈",ic:"ic-a",text:"<strong>Your XP system launches today.</strong> You'll receive your personal tracking dashboard and see your badge roadmap — all 10 milestones across 18 months displayed upfront."},
+      {icon:"★",ic:"ic-a",text:"<strong>Your Life Audit is scored and analyzed.</strong> You'll see exactly where your numbers are and set the first quarterly targets with clear metrics attached."},
+      {icon:"▽",ic:"ic-a",text:"<strong>The Cost of Inaction is calculated together.</strong> You'll look clearly at what another year without change actually costs — in numbers you write yourself."}
+    ],
+    recs:[
+      {ph:"Discovery",pc:"#EEEDFE",pt:"#3C3489",t:"<strong>Cost of Inaction exercise</strong> — calculate the exact price of another year unchanged"},
+      {ph:"Onboarding",pc:"#E1F5EE",pt:"#085041",t:"<strong>XP + badge roadmap revealed</strong> — all 10 milestones visible from day one"},
+      {ph:"Momentum",pc:"#E6F1FB",pt:"#0C447C",t:"<strong>Weekly win log</strong> — every session opens with scored achievements and live XP update"},
+      {ph:"Deepening",pc:"#FAEEDA",pt:"#633806",t:"<strong>Public stretch goal declaration</strong> — social stakes dramatically amplify commitment"},
+      {ph:"Mastery",pc:"#EAF3DE",pt:"#27500A",t:"<strong>Teach-back to group</strong> — earn the rarest badge by demonstrating mastery publicly"},
+      {ph:"Legacy",pc:"#FAECE7",pt:"#712B13",t:"<strong>Capstone scoreboard</strong> — 18-month XP, all badges, before/after metrics in one document"}
+    ],
+    xpAmt:150,
+    xpMsg:"150 XP earned — Assessment Complete. You're on the board."
+  },
+  s:{
+    name:"The Socializer",icon:"◎",iconCls:"ic-s",lblCls:"ls",heroCls:"rh-s",barCls:"sb-s",dcCls:"dc-s",
+    label:"SOCIALIZER TYPE",
+    tagline:"You grow through connection, belonging, and being witnessed. The relationship with your coach and community isn't a nice-to-have — it's the actual work.",
+    drives:["CD5 Social Influence","CD1 Epic Meaning","CD3 Empowerment","CD7 Unpredictability"],
+    strengths:"Deep vulnerability in sessions, natural referral generator, creates community warmth, retains through the strength of relationships.",
+    watchout:"May avoid difficult inner work to preserve the relational dynamic. Disengages fast when the coach feels transactional or outcome-only focused.",
+    approach:"Peer match in weeks 2–3 before anything gets hard. Monthly group circles non-optional. Community recognition hits deeper than coach praise. Alumni induction is the graduation moment.",
+    secondary:"Your blend combines deep Socializer connection instincts with the strengths of your secondary type.",
+    firstSession:[
+      {icon:"◎",ic:"ic-s",text:"<strong>The relationship begins — genuinely.</strong> Session one is designed so you feel truly known before any goal is set. Your coach will spend real time simply understanding you as a full person."},
+      {icon:"★",ic:"ic-s",text:"<strong>Your peer match is set up.</strong> Before session two, you'll be introduced to one other client at a similar life stage — someone who will know you're on this journey from the beginning."},
+      {icon:"◈",ic:"ic-s",text:"<strong>Your community invitation is sent.</strong> You'll receive your first monthly group circle invite — a space where real connection and shared growth happen alongside your 1:1 work."},
+      {icon:"▲",ic:"ic-s",text:"<strong>Your first win is shared, not just recorded.</strong> The action you commit to at session one is designed to involve or be shared with someone who matters to you."}
+    ],
+    recs:[
+      {ph:"Discovery",pc:"#EEEDFE",pt:"#3C3489",t:"<strong>Peer matching</strong> — introduction to one client at a similar stage within first three weeks"},
+      {ph:"Onboarding",pc:"#E1F5EE",pt:"#085041",t:"<strong>Group circle invitation</strong> — seated next to a more advanced client for organic mentoring"},
+      {ph:"Momentum",pc:"#E6F1FB",pt:"#0C447C",t:"<strong>Win-sharing community channel</strong> — peer celebrations hit deeper than coach praise alone"},
+      {ph:"Deepening",pc:"#FAEEDA",pt:"#633806",t:"<strong>Alumni mentor match</strong> — personal bond with someone who completed the full 18-month journey"},
+      {ph:"Mastery",pc:"#EAF3DE",pt:"#27500A",t:"<strong>Breakthrough story presentation</strong> — witnessed by the full community at your most honest"},
+      {ph:"Legacy",pc:"#FAECE7",pt:"#712B13",t:"<strong>Alumni induction</strong> — named, welcomed, and given a meaningful role in the community"}
+    ],
+    xpAmt:150,
+    xpMsg:"150 XP earned — Assessment Complete. Your journey starts with connection."
+  },
+  e:{
+    name:"The Explorer",icon:"◈",iconCls:"ic-e",lblCls:"le",heroCls:"rh-e",barCls:"sb-e",dcCls:"dc-e",
+    label:"EXPLORER TYPE",
+    tagline:"You are energized by self-discovery, insight, and mapping inner territory. You need the coaching journey to feel like a genuine expedition — not a curriculum applied to you.",
+    drives:["CD3 Empowerment","CD7 Unpredictability","CD1 Epic Meaning","CD5 Social Influence"],
+    strengths:"Generates breakthrough insights, questions assumptions deeply, builds powerful personal frameworks, intrinsically motivated to understand.",
+    watchout:"Analysis paralysis — discovers without committing. May intellectualize feelings to avoid experiencing them. Needs structure to move, not so much it forecloses exploration.",
+    approach:"Hero's Journey framing at session one. Self-chosen coaching track. Quarterly pattern interrupts. Personal Playbook from month 8. Sealed letter opened at month 18.",
+    secondary:"Your blend combines Explorer depth and curiosity with the momentum of your secondary type.",
+    firstSession:[
+      {icon:"◈",ic:"ic-e",text:"<strong>Your journey is named.</strong> Session one opens with the Hero's Journey mapping — your life story placed on a mythic arc, with your coaching journey as the expedition into unknown territory."},
+      {icon:"★",ic:"ic-e",text:"<strong>You choose your own track.</strong> You'll be presented with five possible coaching directions and choose the one that feels most alive right now. This is your expedition — you are the cartographer."},
+      {icon:"◎",ic:"ic-e",text:"<strong>A letter to your future self is written and sealed.</strong> At session one, you write a letter that will not be opened until month 18. The gap between who writes it and who reads it will be the measure of everything."},
+      {icon:"▽",ic:"ic-e",text:"<strong>Your first pattern interrupt is teased.</strong> You'll know that one session per quarter will be a completely unexpected format — unknown until it arrives. This is your first taste of the journey's intentional unpredictability."}
+    ],
+    recs:[
+      {ph:"Discovery",pc:"#EEEDFE",pt:"#3C3489",t:"<strong>Hero's Journey mapping</strong> — your life story reframed as an epic expedition into unknown territory"},
+      {ph:"Onboarding",pc:"#E1F5EE",pt:"#085041",t:"<strong>Self-chosen coaching track</strong> — full authorship of the journey direction from day one"},
+      {ph:"Momentum",pc:"#E6F1FB",pt:"#0C447C",t:"<strong>Quarterly pattern interrupt sessions</strong> — unexpected formats that prevent habituation"},
+      {ph:"Deepening",pc:"#FAEEDA",pt:"#633806",t:"<strong>Personal Playbook launch</strong> — you build your own framework library, coach as collaborator"},
+      {ph:"Mastery",pc:"#EAF3DE",pt:"#27500A",t:"<strong>Serendipity Log</strong> — tracks non-linear unexpected outcomes that followed from your actions"},
+      {ph:"Legacy",pc:"#FAECE7",pt:"#712B13",t:"<strong>Sealed letter opened</strong> — written at session one, read at month 18 to reveal the full arc"}
+    ],
+    xpAmt:150,
+    xpMsg:"150 XP earned — Assessment Complete. The expedition has begun."
+  },
+  k:{
+    name:"The Challenger",icon:"◆",iconCls:"ic-k",lblCls:"lk",heroCls:"rh-k",barCls:"sb-k",dcCls:"dc-k",
+    label:"CHALLENGER TYPE",
+    tagline:"You are motivated by real stakes, overcoming resistance, and proving limits genuinely wrong. Gentle coaching loses you. You need a coach who will not back down.",
+    drives:["CD8 Avoidance","CD2 Accomplishment","CD6 Scarcity","CD4 Ownership"],
+    strengths:"Extreme commitment when stakes are real, generates momentum through resistance, self-directed at mastery, produces the most powerful transformation stories.",
+    watchout:"Loses respect for coaches who are too accommodating. May use intensity to avoid vulnerability. Needs genuine difficulty — not performed challenge.",
+    approach:"Cost of Inaction at discovery. Self-authored commitment contract in onboarding. XP decay for momentum. Old Self dossier for deepening. Alternative Timeline at month 17.",
+    secondary:"Your blend combines Challenger fire and intensity with the grounding of your secondary type.",
+    firstSession:[
+      {icon:"◆",ic:"ic-k",text:"<strong>The Cost of Inaction is calculated — by you.</strong> Session one opens with a hard look at what another year without change actually costs: in income, relationships, time, and self-respect. You write the number yourself."},
+      {icon:"★",ic:"ic-k",text:"<strong>Your commitment contract is drafted.</strong> You write your own stakes — the consequences you personally define for quitting early. Your coach witnesses it. It goes into the vault for the moment you need it most."},
+      {icon:"▽",ic:"ic-k",text:"<strong>The Old Self dossier is started and sealed.</strong> You write a detailed portrait of the person you are committing to leave behind. It will be read back to you exactly when resistance peaks and the old self pulls hardest."},
+      {icon:"◈",ic:"ic-k",text:"<strong>Your first real challenge is assigned.</strong> Before you leave session one, you'll commit to something that genuinely uncomfortable — not designed to be easy. This is how your journey starts: with a move that costs something."}
+    ],
+    recs:[
+      {ph:"Discovery",pc:"#EEEDFE",pt:"#3C3489",t:"<strong>Cost of Inaction exercise</strong> — you calculate the exact arithmetic of staying the same"},
+      {ph:"Onboarding",pc:"#E1F5EE",pt:"#085041",t:"<strong>Self-authored commitment contract</strong> — your stakes, your consequences, your handwriting"},
+      {ph:"Momentum",pc:"#E6F1FB",pt:"#0C447C",t:"<strong>XP decay mechanic</strong> — visible score loss after 14 consecutive days of inactivity"},
+      {ph:"Deepening",pc:"#FAEEDA",pt:"#633806",t:"<strong>Old Self dossier</strong> — sealed at session one, opened at the moment of peak resistance"},
+      {ph:"Mastery",pc:"#EAF3DE",pt:"#27500A",t:"<strong>Voluntary stakes escalation</strong> — you raise your own consequences at the mastery stage"},
+      {ph:"Legacy",pc:"#FAECE7",pt:"#712B13",t:"<strong>Alternative Timeline</strong> — vivid portrait of who you'd be without this work, written at month 17"}
+    ],
+    xpAmt:150,
+    xpMsg:"150 XP earned — Assessment Complete. The resistance starts now."
+  }
+};
+
+const TNAMES={a:"Achiever",s:"Socializer",e:"Explorer",k:"Challenger"};
+const TICONS={a:"▲",s:"◎",e:"◈",k:"◆"};
+
+let current=0, answers=new Array(15).fill(null), clientName="";
+
+/* ── NAVIGATION ── */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function beginTest(){
+  clientName=(document.getElementById('client-name').value.trim()||"You");
+  show('screen-test');
+  renderQ();
+}
+
+function renderQ(){
+  const q=QUESTIONS[current], n=current+1;
+  document.getElementById('q-num').textContent='QUESTION '+String(n).padStart(2,'0');
+  document.getElementById('q-text').textContent=q.t;
+  const qx=document.getElementById('q-ctx');
+  if(q.x){qx.textContent=q.x;qx.style.display='block';}else{qx.style.display='none';}
+  const pct=Math.round((current/15)*100);
+  document.getElementById('prog-label').textContent='Question '+n+' of 15';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+  const op=document.getElementById('opts'); op.innerHTML='';
+  q.o.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'+(answers[current]===o.tp?' sel':'');
+    b.innerHTML='<span class="olbl">'+o.l+'</span>'+o.v;
+    b.onclick=()=>{
+      answers[current]=o.tp;
+      document.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      document.getElementById('next-btn').disabled=false;
+    };
+    op.appendChild(b);
+  });
+  document.getElementById('next-btn').disabled=answers[current]===null;
+  document.getElementById('next-btn').textContent=current===14?'See my results':'Next';
+  const bb=document.getElementById('back-btn');
+  bb.classList.toggle('hidden',current===0);
+  const dt=document.getElementById('dots'); dt.innerHTML='';
+  for(let i=0;i<15;i++){const d=document.createElement('div');d.className='dot'+(i===current?' cur':answers[i]!==null?' ans':'');dt.appendChild(d);}
+}
+
+function goNext(){if(current===14){buildResults();return;}current++;renderQ();}
+function goBack(){if(current>0){current--;renderQ();}}
+
+/* ── RESULTS ── */
+function buildResults(){
+  const c={a:0,s:0,e:0,k:0};
+  answers.forEach(a=>{if(a)c[a]++;});
+  const tot=Object.values(c).reduce((x,y)=>x+y,0);
+  const sorted=Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  const p=sorted[0][0], T=TD[p];
+
+  // Greeting
+  document.getElementById('res-greeting').textContent=
+    clientName&&clientName!=="You" ? clientName+"'s results" : "Your results";
+
+  // XP bar
+  document.getElementById('xp-val').textContent=T.xpAmt+' XP';
+  document.getElementById('xp-caption').textContent=T.xpMsg;
+
+  // Hero
+  const rh=document.getElementById('result-hero');
+  rh.className='result-hero '+T.heroCls;
+  rh.innerHTML=`<div class="rh-top">
+    <div class="rh-icon ${T.iconCls}">${T.icon}</div>
+    <div>
+      <div class="rh-lbl ${T.lblCls}">${T.label}</div>
+      <div class="rh-name">${T.name}</div>
+      <div class="rh-tag">${T.tagline}</div>
+    </div>
+  </div>`;
+
+  // Score bars
+  const sb=document.getElementById('score-bars'); sb.innerHTML='';
+  sorted.forEach(([tp,cnt])=>{
+    const pct=Math.round((cnt/tot)*100);
+    const TD2=TD[tp];
+    sb.innerHTML+=`<div class="srow">
+      <div class="slbl">${TICONS[tp]} ${TNAMES[tp]}</div>
+      <div class="strack"><div class="sbar ${TD2.barCls}" style="width:0%" data-w="${pct}%"></div></div>
+      <div class="spct">${pct}%</div>
+    </div>`;
+  });
+
+  // Blueprint (client-facing: milestones they'll look forward to)
+  const bp=document.getElementById('blueprint');
+  const sec=TNAMES[sorted[1][0]];
+  bp.innerHTML=`<h3 class="serif">Moments you'll look forward to</h3>
+    <p>Based on your ${T.name} profile, here are the milestones across your 18-month journey that are specifically designed to energize someone like you.</p>`;
+  T.recs.forEach(r=>{
+    bp.innerHTML+=`<div class="bp-item">
+      <span class="bp-phase" style="background:${r.pc};color:${r.pt}">${r.ph}</span>
+      <div class="bp-text">${r.t}</div>
+    </div>`;
+  });
+
+  // First Session Preview
+  const fs=document.getElementById('first-session');
+  const fsBg=T.heroCls==='rh-a'?'#EEEDFE':T.heroCls==='rh-s'?'#E1F5EE':T.heroCls==='rh-e'?'#FAEEDA':'#FAECE7';
+  fs.innerHTML=`<div class="fs-header">
+    <div class="fs-badge" style="background:${fsBg}"><span style="font-size:20px">${T.icon}</span></div>
+    <div>
+      <div class="fsh">What to expect in your first session</div>
+    </div>
+  </div>
+  <p class="fsp">Your first session is tailored specifically to how you are wired as ${T.name.replace('The','')} type. Here is exactly what is being designed for you.</p>
+  <div class="fs-items" id="fs-list"></div>`;
+
+  const fsl=document.getElementById('fs-list');
+  T.firstSession.forEach((item,i)=>{
+    const numBg=T.heroCls==='rh-a'?'#EEEDFE':T.heroCls==='rh-s'?'#E1F5EE':T.heroCls==='rh-e'?'#FAEEDA':'#FAECE7';
+    const numCol=T.heroCls==='rh-a'?'#3C3489':T.heroCls==='rh-s'?'#085041':T.heroCls==='rh-e'?'#633806':'#712B13';
+    fsl.innerHTML+=`<div class="fsi">
+      <div class="fsi-num" style="background:${numBg};color:${numCol}">${i+1}</div>
+      <div class="fsi-body">${item.text}</div>
+    </div>`;
+  });
+
+  show('screen-result');
+
+  // Animate XP bar and score bars
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      document.getElementById('xp-fill').style.width='68%';
+      document.querySelectorAll('.sbar[data-w]').forEach(bar=>{
+        bar.style.width=bar.getAttribute('data-w');
+      });
+    },120);
+  });
+
+  // Auto-send results to coach
+  setTimeout(()=>{ autoSendToCoach(); }, 800);
+}
+
+/* ── EMAIL MODAL ── */
+const COACH_EMAIL = 'coachty@chutelifecoaching.com';
+
+function buildEmailBody(cName, T, sorted, tot, TD, TICONS, TNAMES){
+  const primPct=Math.round((sorted[0][1]/tot)*100);
+  const sec=sorted[1][0], secT=TD[sec];
+  const secPct=Math.round((sorted[1][1]/tot)*100);
+  const scoreBreakdown=sorted.map(([tp,cnt])=>
+    `${TICONS[tp]} ${TNAMES[tp]}: ${Math.round((cnt/tot)*100)}%`
+  ).join(' | ');
+  const recsText=T.recs.map(r=>`[${r.ph}] ${r.t.replace(/<[^>]+>/g,'')}`).join('\n');
+  return `COACHING PLAYER TYPE ASSESSMENT RESULTS
+Client: ${cName}
+Primary Type: ${T.name} (${primPct}%)
+Secondary Type: ${secT.name} (${secPct}%)
+
+═══════════════════════════════════════
+TYPE SCORES
+═══════════════════════════════════════
+${scoreBreakdown}
+
+═══════════════════════════════════════
+TYPE PROFILE
+═══════════════════════════════════════
+Type: ${T.label}
+Summary: ${T.tagline}
+
+Primary Octalysis Drives: ${T.drives.join(', ')}
+
+Secondary Type Blend: ${T.secondary}
+
+═══════════════════════════════════════
+COACHING INTELLIGENCE
+═══════════════════════════════════════
+STRENGTHS:
+${T.strengths}
+
+COACH WATCH-OUT:
+${T.watchout}
+
+RECOMMENDED APPROACH:
+${T.approach}
+
+═══════════════════════════════════════
+18-MONTH BLUEPRINT
+═══════════════════════════════════════
+${recsText}
+
+═══════════════════════════════════════
+FIRST SESSION DESIGN NOTES
+═══════════════════════════════════════
+${T.firstSession.map((f,i)=>`${i+1}. ${f.text.replace(/<[^>]+>/g,'')}`).join('\n')}
+
+═══════════════════════════════════════
+Assessment completed via Bartle Coaching Player Type Test
+Based on Yu-Kai Chou's Octalysis Framework × Richard Bartle's Player Types
+`;
+}
+
+function autoSendToCoach(){
+  const c={a:0,s:0,e:0,k:0};
+  answers.forEach(a=>{if(a)c[a]++;});
+  const tot=Object.values(c).reduce((x,y)=>x+y,0);
+  const sorted=Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  const p=sorted[0][0], T=TD[p];
+  const subject=encodeURIComponent(`Coaching Assessment Results — ${clientName} (${T.name})`);
+  const body=encodeURIComponent(buildEmailBody(clientName, T, sorted, tot, TD, TICONS, TNAMES));
+  window.open(`mailto:${COACH_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+  document.getElementById('auto-send-notice').style.display='block';
+}
+
+function openEmailModal(){
+  document.getElementById('modal-inner').innerHTML=getModalFormHTML();
+  document.getElementById('modal-bg').classList.remove('hidden');
+}
+function getModalFormHTML(){
+  return `<h2>Email results to your coach</h2>
+    <p>Your coach's email is pre-filled. You can change it if needed. They'll receive your complete assessment breakdown including your type profile, Octalysis drives, strengths, watch-outs, and full 18-month coaching blueprint.</p>
+    <label>COACH'S EMAIL ADDRESS</label>
+    <input type="email" id="coach-email" value="${COACH_EMAIL}" placeholder="coach@example.com" />
+    <label>YOUR NAME</label>
+    <input type="text" id="modal-client-name" value="${clientName}" readonly style="opacity:.7;cursor:default" />
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="send" onclick="sendEmail()">Send results</button>
+    </div>`;
+}
+function closeModal(){document.getElementById('modal-bg').classList.add('hidden');}
+document.getElementById('modal-bg').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function sendEmail(){
+  const email=document.getElementById('coach-email').value.trim();
+  if(!email||!email.includes('@')){
+    document.getElementById('coach-email').style.borderColor='#E24B4A';
+    document.getElementById('coach-email').focus();
+    return;
+  }
+
+  const c={a:0,s:0,e:0,k:0};
+  answers.forEach(a=>{if(a)c[a]++;});
+  const tot=Object.values(c).reduce((x,y)=>x+y,0);
+  const sorted=Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  const p=sorted[0][0], T=TD[p];
+
+  const subject=encodeURIComponent(`Coaching Assessment Results — ${clientName} (${T.name})`);
+  const body=encodeURIComponent(buildEmailBody(clientName, T, sorted, tot, TD, TICONS, TNAMES));
+
+  window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+
+  // Show confirm
+  setTimeout(()=>{
+    document.getElementById('modal-inner').innerHTML=`
+      <div class="sent-confirm">
+        <div class="checkmark">✓</div>
+        <h3>Results sent to your coach</h3>
+        <p>Your coach will receive ${clientName}'s full breakdown including type profile, Octalysis drives, strengths, watch-outs, and 18-month blueprint. Your first session will be designed around your results.</p>
+        <div style="margin-top:16px">
+          <button class="btn-outline" onclick="closeModal()" style="width:100%">Close</button>
+        </div>
+      </div>`;
+  },600);
+}
+
+function saveResults(){
+  const w = window.open('', '_blank');
+  const styles = Array.from(document.styleSheets).map(s=>{
+    try{return Array.from(s.cssRules).map(r=>r.cssText).join('\n')}catch(e){return ''}
+  }).join('\n');
+  w.document.write(`<!DOCTYPE html><html><head><title>Assessment Results — ${clientName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+      ${styles}
+      .result-actions{display:none!important}
+      #auto-send-notice{display:none!important}
+      .screen{display:block!important}
+      body{background:#F7F5F0;padding:32px;font-family:'DM Sans',sans-serif}
+      .shell{max-width:680px;margin:0 auto}
+      @media print{body{padding:0}}
+    </style>
+  </head><body>
+    <div class="shell">
+      ${document.getElementById('screen-result').innerHTML}
+    </div>
+    <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+function retakeTest(){
+  current=0;
+  answers=new Array(15).fill(null);
+  clientName="";
+  // Open assessment fresh in a new tab
+  const w=window.open('','_blank');
+  w.document.write(document.documentElement.outerHTML);
+  w.document.close();
+}
+</script>
+</body>
+</html>
